@@ -28,6 +28,17 @@ app.get("/api/persons",((req, res)=>{
     res.send(persons);
 }));
 
+app.get("/api/persons/:id",((req, res)=>{
+    const id = Number(req.params.id);
+    const selectedPerson = persons.find(person => person.id === id);
+    if(selectedPerson){
+        res.send(selectedPerson);
+    }
+    else{
+        res.status(404).end()
+    }
+}));
+
 app.get("/info", ((req, res)=>{
     const info = {
         entries: persons.length,
