@@ -1,7 +1,10 @@
 const express = require("express");
 const app = express();
+const morgan = require("morgan")
 
 app.use(express.json());
+morgan.token("request-body", ((req, res)=>{return JSON.stringify(req.body)}))
+app.use(morgan(":method :url :status :res[content-length] - :response-time ms :request-body"));
 
 const persons = [
     {
@@ -70,7 +73,6 @@ app.post("/api/persons", ((req, res)=>{
             return createID()
         }
         else{
-            console.log("new id: " + newID)
             return newID;
         }
     }
