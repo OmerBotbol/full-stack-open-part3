@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 
+app.use(express.json());
+
 const persons = [
     {
         id: 1,
@@ -54,6 +56,66 @@ app.delete("/api/persons/:id", ((req, res)=>{
 
     res.send(personFilterd);
     res.status(204);
+}));
+
+app.post("/api/persons", ((req, res)=>{
+    function createID() {
+        const IDs = persons.map((person)=> person.id);
+        const numberOfIDs = 1000;
+        const newID = Math.round(Math.random() * numberOfIDs)
+        if(IDs.includes(newID)){
+            if(IDs.length === numberOfIDs){
+                return "run out fo IDs"
+            }
+            return createID()
+        }
+        else{
+            console.log("new id: " + newID)
+            return newID;
+        }
+    }
+
+    function checkDuplicate(personToCheck){
+        for (const person of persons) {
+            if(person.name === personToCheck.name || person.number === personToCheck.number){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function checkProperties(personToCheck){
+        if(personToCheck.name === undefined || personToCheck.number === undefined){
+            return false;
+        }
+        return true;
+    }
+
+    const body = req.body;
+    const newPerson = {
+        id: createID(),
+        name: body.name,
+        number: body.number
+    }
+    if(checkProperties(newPerson)){
+        if(checkDuplicate(newPerson)){
+            res.status(400)
+            res.send({ error: 'name and number must be unique' });
+        }
+        else{
+            if (typeof(newPerson.id) === "string"){
+                res.send(newPerson.id);
+            }
+            else{
+                persons.push(newPerson);
+                res.send(newPerson);
+            }
+        }
+    }
+    else{
+        res.status(400);
+        res.send({ error: 'missing name or number' });
+    }
 }))
 
 const PORT = 3001;
