@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const path = require("path")
 const morgan = require("morgan")
 const cors = require('cors')
 
@@ -8,7 +9,9 @@ app.use(express.json());
 morgan.token("request-body", ((req, res)=>{return JSON.stringify(req.body)}))
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms :request-body"));
 
-const persons = [
+app.use(express.static(path.join(__dirname,"..","frontend", "build")));
+
+let persons = [
     {
         id: 1,
         name: "Arto Hellas",
@@ -30,6 +33,10 @@ const persons = [
         number: "39-23-6423122"
     }
 ]
+
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname,"..","frontend", "build", "index.html"));
+  });
 
 app.get("/api/persons",((req, res)=>{
     res.send(persons);
@@ -57,9 +64,9 @@ app.get("/info", ((req, res)=>{
 
 app.delete("/api/persons/:id", ((req, res)=>{
     const id = Number(req.params.id);
-    const personFilterd = persons.filter(person => person.id !== id);
+    persons = persons.filter(person => person.id !== id);
 
-    res.send(personFilterd);
+    res.send(persons);
     res.status(204);
 }));
 
