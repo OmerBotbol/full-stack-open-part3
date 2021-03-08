@@ -7,7 +7,7 @@ function App() {
   const [number, setNumber] = useState();
 
   const fetch = async () => {
-    const { data } = await axios.get("/api/persons");
+    const { data } = await axios.get("http://localhost:3001/api/persons");
     setBook(data);
   };
 
@@ -24,9 +24,9 @@ function App() {
     const existingContact = book.find((contact) => contact.name === name);
 
     if (existingContact) {
-      await axios.put(`/api/persons/${existingContact.id}`, { number });
+      await axios.put(`http://localhost:3001/api/persons/${existingContact.id}`, { number });
     } else {
-      await axios.post("/api/persons", {
+      await axios.post("http://localhost:3001/api/persons", {
         name,
         number,
       });
