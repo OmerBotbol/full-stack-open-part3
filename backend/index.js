@@ -64,27 +64,13 @@ app.get("/info", ((req, res)=>{
 app.delete("/api/persons/:id", ((req, res)=>{
     Person.findByIdAndDelete(req.params.id).then(()=>{
         Person.find({}).then(persons => {
-            res.json(persons.map(person => person.toJSON()));
             res.status(204);
+            res.json(persons.map(person => person.toJSON()));
         })
     })
 }));
 
 app.post("/api/persons", ((req, res)=>{
-    function createID() {
-        const IDs = persons.map((person)=> person.id);
-        const numberOfIDs = 1000;
-        const newID = Math.round(Math.random() * numberOfIDs)
-        if(IDs.includes(newID)){
-            if(IDs.length === numberOfIDs){
-                return "run out fo IDs"
-            }
-            return createID()
-        }
-        else{
-            return newID;
-        }
-    }
 
     function checkDuplicate(personToCheck){
         for (const person of persons) {
@@ -103,24 +89,20 @@ app.post("/api/persons", ((req, res)=>{
     }
 
     const body = req.body;
-    const newPerson = {
-        id: createID(),
+    const newPerson = new Person({
         name: body.name,
         number: body.number
-    }
+    })
+
     if(checkProperties(newPerson)){
         if(checkDuplicate(newPerson)){
             res.status(400)
             res.send({ error: 'name and number must be unique' });
         }
         else{
-            if (typeof(newPerson.id) === "string"){
-                res.send(newPerson.id);
-            }
-            else{
-                persons.push(newPerson);
-                res.send(newPerson);
-            }
+            newPerson.save().then((result)=>{
+                res.json(result.toJSON())
+            })
         }
     }
     else{
