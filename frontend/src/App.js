@@ -24,7 +24,7 @@ function App() {
     const existingContact = book.find((contact) => contact.name === name);
 
     if (existingContact) {
-      await axios.put(`/api/persons/${existingContact.id}`, { number });
+      await axios.put(`/api/persons/${existingContact.id}`, { name, number });
     } else {
       await axios.post("/api/persons", {
         name,
