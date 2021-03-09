@@ -4,7 +4,7 @@ const path = require("path")
 const morgan = require("morgan")
 require("dotenv").config();
 const Person = require("../person");
-const cors = require('cors')
+const cors = require('cors');
 
 app.use(cors())
 app.use(express.json());
@@ -46,9 +46,16 @@ app.get("/api/persons",((req, res)=>{
     })
 }));
 
-app.get("/api/persons/:id",((req, res)=>{
+app.get("/api/persons/:id",((req, res, next)=>{
     Person.findById(req.params.id).then((person)=>{
-        res.json(person.toJSON());
+        if(person){
+            res.json(person.toJSON());
+        }
+        else{
+            response.status(404).end()
+        }
+    }).catch((err)=>{
+        next(err);
     })
 }));
 
@@ -61,25 +68,15 @@ app.get("/info", ((req, res)=>{
     res.send(`Phonebook has info for ${info.entries} people </br> ${info.date}`)
 }));
 
-app.delete("/api/persons/:id", ((req, res)=>{
+app.delete("/api/persons/:id", ((req, res, next)=>{
     Person.findByIdAndDelete(req.params.id).then(()=>{
-        Person.find({}).then(persons => {
-            res.status(204);
-            res.json(persons.map(person => person.toJSON()));
-        })
+        res.status(204).end();
+    }).catch((err)=>{
+        next(err);
     })
 }));
 
 app.post("/api/persons", ((req, res)=>{
-
-    function checkDuplicate(personToCheck){
-        for (const person of persons) {
-            if(person.name === personToCheck.name || person.number === personToCheck.number){
-                return true;
-            }
-        }
-        return false;
-    }
 
     function checkProperties(personToCheck){
         if(personToCheck.name === undefined || personToCheck.number === undefined){
@@ -95,21 +92,27 @@ app.post("/api/persons", ((req, res)=>{
     })
 
     if(checkProperties(newPerson)){
-        if(checkDuplicate(newPerson)){
-            res.status(400)
-            res.send({ error: 'name and number must be unique' });
-        }
-        else{
-            newPerson.save().then((result)=>{
-                res.json(result.toJSON())
-            })
-        }
+        newPerson.save().then((result)=>{
+            res.json(result.toJSON())
+        })
     }
     else{
         res.status(400);
         res.send({ error: 'missing name or number' });
     }
 }))
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+  
+    if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'malformatted id' })
+    } 
+  
+    next(error)
+}
+  
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT);
