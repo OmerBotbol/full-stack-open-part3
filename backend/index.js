@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const path = require("path")
 const morgan = require("morgan")
+require("dotenv").config();
+const Person = require("../person");
 const cors = require('cors')
 
 app.use(cors())
@@ -39,18 +41,15 @@ app.get("/", (req, res) => {
   });
 
 app.get("/api/persons",((req, res)=>{
-    res.send(persons);
+    Person.find({}).then(persons => {
+        res.json(persons.map(person => person.toJSON()));
+    })
 }));
 
 app.get("/api/persons/:id",((req, res)=>{
-    const id = Number(req.params.id);
-    const selectedPerson = persons.find(person => person.id === id);
-    if(selectedPerson){
-        res.send(selectedPerson);
-    }
-    else{
-        res.status(404).end()
-    }
+    Person.findById(req.params.id).then((person)=>{
+        res.json(person.toJSON());
+    })
 }));
 
 app.get("/info", ((req, res)=>{
@@ -63,11 +62,12 @@ app.get("/info", ((req, res)=>{
 }));
 
 app.delete("/api/persons/:id", ((req, res)=>{
-    const id = Number(req.params.id);
-    persons = persons.filter(person => person.id !== id);
-
-    res.send(persons);
-    res.status(204);
+    Person.findByIdAndDelete(req.params.id).then(()=>{
+        Person.find({}).then(persons => {
+            res.json(persons.map(person => person.toJSON()));
+            res.status(204);
+        })
+    })
 }));
 
 app.post("/api/persons", ((req, res)=>{
